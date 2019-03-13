@@ -26,60 +26,356 @@ var (
 	base    = ""
 	install = "npm install"
 	start   = "npm start"
-	watch   = "watch"
+	build   = "npm run build"
+	sync    = "src"
 
 	wsPath       = path.Join(cwd(), ".shino")
 	wsBasePath   = path.Join(wsPath, "base")
 	wsMergedPath = path.Join(wsPath, "merged")
+
+	version string
+
+	outputFlag = "[SHINO]"
 )
 
 func main() {
+	if os.Getenv("DRONE_REPO") != "" {
+		runDrone()
+	} else {
+		runLocal()
+	}
+}
+
+func runDrone() {
 	app := cli.NewApp()
 	app.Name = "shino"
-	app.Usage = "a command line tool for Kuu"
-	app.Action = func(c *cli.Context) error {
-		setup()
-		return nil
+	app.Usage = "shino plugin"
+	app.Version = version
+	app.Flags = []cli.Flag{
+		//
+		// repo args
+		//
+		cli.StringFlag{
+			Name:   "repo.fullname",
+			Usage:  "repository full name",
+			EnvVar: "DRONE_REPO",
+		},
+		cli.StringFlag{
+			Name:   "repo.owner",
+			Usage:  "repository owner",
+			EnvVar: "DRONE_REPO_OWNER",
+		},
+		cli.StringFlag{
+			Name:   "repo.name",
+			Usage:  "repository name",
+			EnvVar: "DRONE_REPO_NAME",
+		},
+		cli.StringFlag{
+			Name:   "repo.link",
+			Usage:  "repository link",
+			EnvVar: "DRONE_REPO_LINK",
+		},
+		cli.StringFlag{
+			Name:   "repo.avatar",
+			Usage:  "repository avatar",
+			EnvVar: "DRONE_REPO_AVATAR",
+		},
+		cli.StringFlag{
+			Name:   "repo.branch",
+			Usage:  "repository default branch",
+			EnvVar: "DRONE_REPO_BRANCH",
+		},
+		cli.BoolFlag{
+			Name:   "repo.private",
+			Usage:  "repository is private",
+			EnvVar: "DRONE_REPO_PRIVATE",
+		},
+		cli.BoolFlag{
+			Name:   "repo.trusted",
+			Usage:  "repository is trusted",
+			EnvVar: "DRONE_REPO_TRUSTED",
+		},
+		//
+		// commit args
+		//
+		cli.StringFlag{
+			Name:   "remote.url",
+			Usage:  "git remote url",
+			EnvVar: "DRONE_REMOTE_URL",
+		},
+		cli.StringFlag{
+			Name:   "commit.sha",
+			Usage:  "git commit sha",
+			EnvVar: "DRONE_COMMIT_SHA",
+		},
+		cli.StringFlag{
+			Name:   "commit.ref",
+			Value:  "refs/heads/master",
+			Usage:  "git commit ref",
+			EnvVar: "DRONE_COMMIT_REF",
+		},
+		cli.StringFlag{
+			Name:   "commit.branch",
+			Value:  "master",
+			Usage:  "git commit branch",
+			EnvVar: "DRONE_COMMIT_BRANCH",
+		},
+		cli.StringFlag{
+			Name:   "commit.message",
+			Usage:  "git commit message",
+			EnvVar: "DRONE_COMMIT_MESSAGE",
+		},
+		cli.StringFlag{
+			Name:   "commit.link",
+			Usage:  "git commit link",
+			EnvVar: "DRONE_COMMIT_LINK",
+		},
+		cli.StringFlag{
+			Name:   "commit.author.name",
+			Usage:  "git author name",
+			EnvVar: "DRONE_COMMIT_AUTHOR",
+		},
+		cli.StringFlag{
+			Name:   "commit.author.email",
+			Usage:  "git author email",
+			EnvVar: "DRONE_COMMIT_AUTHOR_EMAIL",
+		},
+		cli.StringFlag{
+			Name:   "commit.author.avatar",
+			Usage:  "git author avatar",
+			EnvVar: "DRONE_COMMIT_AUTHOR_AVATAR",
+		},
+		//
+		// build args
+		//
+		cli.StringFlag{
+			Name:   "build.event",
+			Value:  "push",
+			Usage:  "build event",
+			EnvVar: "DRONE_BUILD_EVENT",
+		},
+		cli.IntFlag{
+			Name:   "build.number",
+			Usage:  "build number",
+			EnvVar: "DRONE_BUILD_NUMBER",
+		},
+		cli.IntFlag{
+			Name:   "build.created",
+			Usage:  "build created",
+			EnvVar: "DRONE_BUILD_CREATED",
+		},
+		cli.IntFlag{
+			Name:   "build.started",
+			Usage:  "build started",
+			EnvVar: "DRONE_BUILD_STARTED",
+		},
+		cli.IntFlag{
+			Name:   "build.finished",
+			Usage:  "build finished",
+			EnvVar: "DRONE_BUILD_FINISHED",
+		},
+		cli.StringFlag{
+			Name:   "build.status",
+			Usage:  "build status",
+			Value:  "success",
+			EnvVar: "DRONE_BUILD_STATUS",
+		},
+		cli.StringFlag{
+			Name:   "build.link",
+			Usage:  "build link",
+			EnvVar: "DRONE_BUILD_LINK",
+		},
+		cli.StringFlag{
+			Name:   "build.deploy",
+			Usage:  "build deployment target",
+			EnvVar: "DRONE_DEPLOY_TO",
+		},
+		cli.BoolFlag{
+			Name:   "yaml.verified",
+			Usage:  "build yaml is verified",
+			EnvVar: "DRONE_YAML_VERIFIED",
+		},
+		cli.BoolFlag{
+			Name:   "yaml.signed",
+			Usage:  "build yaml is signed",
+			EnvVar: "DRONE_YAML_SIGNED",
+		},
+		//
+		// prev build args
+		//
+		cli.IntFlag{
+			Name:   "prev.build.number",
+			Usage:  "previous build number",
+			EnvVar: "DRONE_PREV_BUILD_NUMBER",
+		},
+		cli.StringFlag{
+			Name:   "prev.build.status",
+			Usage:  "previous build status",
+			EnvVar: "DRONE_PREV_BUILD_STATUS",
+		},
+		cli.StringFlag{
+			Name:   "prev.commit.sha",
+			Usage:  "previous build sha",
+			EnvVar: "DRONE_PREV_COMMIT_SHA",
+		},
+		//
+		// config args
+		//
+		cli.StringFlag{
+			Name:   "config.base",
+			Usage:  "base project",
+			EnvVar: "PLUGIN_BASE",
+		},
+		cli.StringFlag{
+			Name:   "config.install",
+			Usage:  "install command",
+			EnvVar: "PLUGIN_INSTALL",
+		},
+		cli.StringFlag{
+			Name:   "config.build",
+			Usage:  "build command",
+			EnvVar: "PLUGIN_BUILD",
+		},
+		cli.StringFlag{
+			Name:   "sync",
+			Usage:  "sync dir",
+			Value:  "config.sync",
+			EnvVar: "PLUGIN_SYNC",
+		},
+	}
+	app.Action = func(c *cli.Context) {
+		plugin := Plugin{
+			Repo: Repo{
+				Owner:   c.String("repo.owner"),
+				Name:    c.String("repo.name"),
+				Link:    c.String("repo.link"),
+				Avatar:  c.String("repo.avatar"),
+				Branch:  c.String("repo.branch"),
+				Private: c.Bool("repo.private"),
+				Trusted: c.Bool("repo.trusted"),
+			},
+			Build: Build{
+				Number:   c.Int("build.number"),
+				Event:    c.String("build.event"),
+				Status:   c.String("build.status"),
+				Deploy:   c.String("build.deploy"),
+				Created:  int64(c.Int("build.created")),
+				Started:  int64(c.Int("build.started")),
+				Finished: int64(c.Int("build.finished")),
+				Link:     c.String("build.link"),
+			},
+			Commit: Commit{
+				Remote:  c.String("remote.url"),
+				Sha:     c.String("commit.sha"),
+				Ref:     c.String("commit.sha"),
+				Link:    c.String("commit.link"),
+				Branch:  c.String("commit.branch"),
+				Message: c.String("commit.message"),
+				Author: Author{
+					Name:   c.String("commit.author.name"),
+					Email:  c.String("commit.author.email"),
+					Avatar: c.String("commit.author.avatar"),
+				},
+			},
+			Config: Config{
+				Base:    c.String("config.base"),
+				Install: c.String("config.install"),
+				Build:   c.String("config.build"),
+				Sync:    c.String("config.sync"),
+			},
+		}
+
+		if err := plugin.Exec(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func initConfig() {
-	base = os.Getenv("BASE")
-	install = os.Getenv("INSTALL")
-	start = os.Getenv("START")
-	watch = os.Getenv("WATCH")
+func runLocal() {
+	app := cli.NewApp()
+	app.Name = "shino"
+	app.Usage = "a command line tool for Kuu"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "base",
+			Usage:  "base project",
+			EnvVar: "BASE",
+		},
+		cli.StringFlag{
+			Name:   "install",
+			Usage:  "install command",
+			Value:  "npm install",
+			EnvVar: "INSTALL",
+		},
+		cli.StringFlag{
+			Name:   "start",
+			Usage:  "start command",
+			Value:  "npm start",
+			EnvVar: "START",
+		},
+		cli.StringFlag{
+			Name:   "sync",
+			Usage:  "sync dir",
+			Value:  "sync",
+			EnvVar: "SYNC",
+		},
+	}
+	app.Action = func(c *cli.Context) {
+		baseVal := c.String("base")
+		installVal := c.String("install")
+		startVal := c.String("start")
+		syncVal := c.String("sync")
 
+		if baseVal != "" {
+			base = strings.TrimSpace(baseVal)
+		}
+		if installVal != "" {
+			install = strings.TrimSpace(installVal)
+		}
+		if startVal != "" {
+			start = strings.TrimSpace(startVal)
+		}
+		if syncVal != "" {
+			sync = strings.TrimSpace(syncVal)
+		}
+
+		setup()
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func parseConfigFile() {
 	var cfg map[string]string
-	cfgFile := "kuu.json"
-	if _, err := os.Stat(cfgFile); err == nil {
+	cfgFile := path.Join(cwd(), "kuu.json")
+	if stat, err := os.Stat(cfgFile); err == nil && !stat.IsDir() {
 		if data, err := ioutil.ReadFile(cfgFile); err == nil {
 			json.Unmarshal(data, &cfg)
 		}
+	} else {
+		return
 	}
 	if cfg != nil {
 		if v, ok := cfg["base"]; ok {
-			base = v
+			base = strings.TrimSpace(v)
 		}
 		if v, ok := cfg["install"]; ok {
-			install = v
+			install = strings.TrimSpace(v)
 		}
 		if v, ok := cfg["start"]; ok {
-			start = v
+			start = strings.TrimSpace(v)
 		}
-		if v, ok := cfg["watch"]; ok {
-			watch = v
+		if v, ok := cfg["sync"]; ok {
+			sync = strings.TrimSpace(v)
 		}
 	}
-
-	base = strings.TrimSpace(base)
-	install = strings.TrimSpace(install)
-	start = strings.TrimSpace(start)
-	watch = strings.TrimSpace(watch)
 }
 
 func execCmd(cmd *exec.Cmd) {
@@ -93,7 +389,7 @@ func execCmd(cmd *exec.Cmd) {
 }
 
 func setup() {
-	initConfig()
+	parseConfigFile()
 	ctx, cancel := context.WithCancel(context.Background())
 	//创建监听退出chan
 	c := make(chan os.Signal)
@@ -103,10 +399,10 @@ func setup() {
 		for s := range c {
 			switch s {
 			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
-				log.Println("[SHINO] exit", s)
+				log.Printf("%s exit %v\n", outputFlag, s)
 				cancel()
 			default:
-				log.Println("[SHINO] other", s)
+				log.Printf("%s other %v\n", outputFlag, s)
 			}
 		}
 	}()
@@ -117,12 +413,14 @@ func setup() {
 		cloneCmd := clone(base, wsBasePath)
 		execCmd(cloneCmd)
 	}
-	// 执行合并：.shino/base + watch = .shino/merged
-	execMerge()
-	// 执行install命令
-	if install != "" {
-		installCmd := mergedCmd(ctx, install)
-		execCmd(installCmd)
+	// 执行合并：.shino/base + sync = .shino/merged
+	if _, err := os.Stat(wsMergedPath); os.IsNotExist(err) {
+		execMerge()
+		// 执行install命令
+		if install != "" {
+			installCmd := mergedCmd(ctx, install)
+			execCmd(installCmd)
+		}
 	}
 	// 执行start命令
 	startCmd := mergedCmd(ctx, start)
@@ -132,7 +430,7 @@ func setup() {
 }
 
 func logArgs(args []string) {
-	output := "[SHINO]"
+	output := outputFlag
 	for _, arg := range args {
 		output = fmt.Sprintf("%s %s", output, arg)
 	}
@@ -160,6 +458,7 @@ func mergedCmd(ctx context.Context, execStr string) *exec.Cmd {
 }
 
 func execMerge() {
+	color.New(color.FgHiGreen, color.Bold).Printf("%s merge dirs\n", outputFlag)
 	safeDirs := []string{"", ".", "/", "/usr", os.TempDir()}
 	if v, err := os.UserCacheDir(); err == nil {
 		safeDirs = append(safeDirs, v)
@@ -172,20 +471,29 @@ func execMerge() {
 			log.Fatal(fmt.Errorf("Fatal merged dir: %s", wsMergedPath))
 		}
 	}
-	// 先删除merged
-	if destInfo, err := os.Stat(wsMergedPath); err == nil && destInfo.IsDir() {
-		// os.RemoveAll(wsMergedPath)
-		return
-	}
 	ensureDir(wsMergedPath)
 	// 复制base目录
 	if err := copyDir(wsBasePath, wsMergedPath); err != nil {
 		log.Fatal(err)
 	}
-	// 复制watch目录
-	if err := copyDir(watch, wsMergedPath); err != nil {
+	// 复制sync目录
+	destPath := destSrcCase(sync, wsMergedPath)
+	if err := copyDir(sync, destPath); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func destSrcCase(syncPath, destPath string) string {
+	syncSrcPath := path.Join(syncPath, "src")
+	destSrcPath := path.Join(destPath, "src")
+
+	_, syncErr := os.Stat(syncSrcPath)
+	destSrcStat, mergedErr := os.Stat(destSrcPath)
+
+	if os.IsNotExist(syncErr) && (mergedErr == nil && destSrcStat.IsDir()) {
+		destPath = destSrcPath
+	}
+	return destPath
 }
 
 func cwd() string {
@@ -198,12 +506,13 @@ func cwd() string {
 
 func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 	changedPath := event.Name
-	replacePath := strings.Replace(changedPath, watch, "", 1)
-	destPath := path.Join(wsMergedPath, replacePath)
+	replacePath := strings.Replace(changedPath, sync, "", 1)
+	wsRealMergedPath := destSrcCase(sync, wsMergedPath)
+	destPath := path.Join(wsRealMergedPath, replacePath)
 
 	switch event.Op {
 	case fsnotify.Create:
-		color.Green("[SHINO] create: %s => %s\n", changedPath, destPath)
+		color.Green("%s create: %s => %s\n", outputFlag, changedPath, destPath)
 		watcher.Add(event.Name)
 		if stat, err := os.Stat(changedPath); err == nil {
 			if stat.IsDir() {
@@ -214,11 +523,11 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 			}
 		}
 	case fsnotify.Rename, fsnotify.Remove, fsnotify.Remove | fsnotify.Rename:
-		color.Green("[SHINO] remove: %s => %s\n", changedPath, destPath)
+		color.Green("%s remove: %s => %s\n", outputFlag, changedPath, destPath)
 		watcher.Remove(event.Name)
 		os.RemoveAll(destPath)
 	case fsnotify.Write:
-		color.Green("[SHINO] write: %s => %s\n", changedPath, destPath)
+		color.Green("%s write: %s => %s\n", outputFlag, changedPath, destPath)
 		copyFile(changedPath, destPath)
 	}
 }
@@ -243,16 +552,16 @@ func registerWatcher() {
 				if !ok {
 					return
 				}
-				log.Printf("[SHINO] error:%s\n", err.Error())
+				log.Printf("%s error:%s\n", outputFlag, err.Error())
 			}
 		}
 	}()
 
-	err = watcher.Add(watch)
+	err = watcher.Add(sync)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = filepath.Walk(watch, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sync, func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(path, "node_modules") {
 			return nil
 		}

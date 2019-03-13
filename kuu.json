@@ -2,5 +2,5 @@
   "base": "https://ci:wosoft2018@git.wosoft.me/fho/fho-admin.git",
   "install": "npm install",
   "start": "npm start",
-  "watch": "watch"
+  "sync": "src"
 }
