@@ -36,7 +36,7 @@ var (
 func main() {
 	app := cli.NewApp()
 	app.Name = "shino"
-	app.Usage = "a command line tool for kuu"
+	app.Usage = "a command line tool for Kuu"
 	app.Action = func(c *cli.Context) error {
 		setup()
 		return nil
