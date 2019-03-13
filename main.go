@@ -17,7 +17,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fatih/color"
 	"github.com/fsnotify/fsnotify"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -26,12 +28,27 @@ var (
 	start   = "npm start"
 	watch   = "watch"
 
-	wsPath       = ".shino"
+	wsPath       = path.Join(cwd(), ".shino")
 	wsBasePath   = path.Join(wsPath, "base")
 	wsMergedPath = path.Join(wsPath, "merged")
 )
 
-func init() {
+func main() {
+	app := cli.NewApp()
+	app.Name = "shino"
+	app.Usage = "a command line tool for kuu"
+	app.Action = func(c *cli.Context) error {
+		setup()
+		return nil
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func initConfig() {
 	base = os.Getenv("BASE")
 	install = os.Getenv("INSTALL")
 	start = os.Getenv("START")
@@ -65,10 +82,6 @@ func init() {
 	watch = strings.TrimSpace(watch)
 }
 
-func main() {
-	setup()
-}
-
 func execCmd(cmd *exec.Cmd) {
 	buf := new(bytes.Buffer)
 	cmd.Stdout = io.MultiWriter(os.Stdout, buf)
@@ -80,6 +93,7 @@ func execCmd(cmd *exec.Cmd) {
 }
 
 func setup() {
+	initConfig()
 	ctx, cancel := context.WithCancel(context.Background())
 	//创建监听退出chan
 	c := make(chan os.Signal)
@@ -89,14 +103,10 @@ func setup() {
 		for s := range c {
 			switch s {
 			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
-				fmt.Println("退出", s)
+				log.Println("[SHINO] exit", s)
 				cancel()
-			case syscall.SIGUSR1:
-				fmt.Println("usr1", s)
-			case syscall.SIGUSR2:
-				fmt.Println("usr2", s)
 			default:
-				fmt.Println("other", s)
+				log.Println("[SHINO] other", s)
 			}
 		}
 	}()
@@ -126,7 +136,7 @@ func logArgs(args []string) {
 	for _, arg := range args {
 		output = fmt.Sprintf("%s %s", output, arg)
 	}
-	fmt.Println(output)
+	color.New(color.FgHiGreen, color.Bold).Println(output)
 }
 
 func clone(url, local string) *exec.Cmd {
@@ -193,7 +203,7 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 
 	switch event.Op {
 	case fsnotify.Create:
-		fmt.Printf("create: %s => %s\n", changedPath, destPath)
+		color.Green("[SHINO] create: %s => %s\n", changedPath, destPath)
 		watcher.Add(event.Name)
 		if stat, err := os.Stat(changedPath); err == nil {
 			if stat.IsDir() {
@@ -204,11 +214,11 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 			}
 		}
 	case fsnotify.Rename, fsnotify.Remove, fsnotify.Remove | fsnotify.Rename:
-		log.Printf("remove: %s\n", destPath)
+		color.Green("[SHINO] remove: %s => %s\n", changedPath, destPath)
 		watcher.Remove(event.Name)
 		os.RemoveAll(destPath)
 	case fsnotify.Write:
-		log.Printf("write: %s => %s\n", changedPath, destPath)
+		color.Green("[SHINO] write: %s => %s\n", changedPath, destPath)
 		copyFile(changedPath, destPath)
 	}
 }
@@ -233,7 +243,7 @@ func registerWatcher() {
 				if !ok {
 					return
 				}
-				log.Println("error:", err)
+				log.Printf("[SHINO] error:%s\n", err.Error())
 			}
 		}
 	}()
