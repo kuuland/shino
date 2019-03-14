@@ -7,8 +7,7 @@ env:
 
 install: true
 after_success:
-  - mkdir -p dist
-  - GOARCH="amd64" GOOS="linux" go build -a -o ./dist/shino
+  - GOARCH="amd64" GOOS="linux" go build -a -o shino
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
   - export REPO=$DOCKER_USER/shino
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_TAG ; fi`
@@ -19,7 +18,7 @@ after_success:
 deploy:
 - provider: script
   skip_cleanup: true
-  script: rm -rf dist && curl -sL https://git.io/goreleaser | bash
+  script: curl -sL https://git.io/goreleaser | bash
   on:
     tags: true
     condition: $TRAVIS_OS_NAME = linux
