@@ -1,6 +1,8 @@
 # .goreleaser.yml
 # Build customization
 builds:
+  - env:
+    - GO111MODULE=on
   - binary: shino
     goos:
       - windows

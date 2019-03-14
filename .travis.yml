@@ -3,6 +3,8 @@ go:
   - 1.x
 install: true
 sudo: required
+env:
+  - GO111MODULE=on
 
 after_success:
   - curl -sL https://git.io/goreleaser | bash 
