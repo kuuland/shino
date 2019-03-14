@@ -3,7 +3,6 @@ builds:
     - GO111MODULE=on
   - binary: shino
 archive:
-  format: gz
   format_overrides:
     - goos: windows
       format: zip
