@@ -1,5 +1,7 @@
 # shino
 
+[![Build Status](https://travis-ci.org/kuuland/shino.svg?branch=master)](https://travis-ci.org/kuuland/shino)
+
 ## 本地开发
 
 ```sh
