@@ -1,15 +1,9 @@
-# .goreleaser.yml
-# Build customization
 builds:
   - env:
     - GO111MODULE=on
   - binary: shino
-    goos:
-      - windows
-      - darwin
-      - linux
-    goarch:
-      - amd64
-# Archive customization
 archive:
-  format: tar.gz
+  format: gz
+  format_overrides:
+    - goos: windows
+      format: zip
