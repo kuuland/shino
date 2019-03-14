@@ -1,15 +1,19 @@
 language: go
-install: true
-
 go:
   - 1.x
-  - 1.11.x
+install: true
+sudo: required
 
-env:
-  global:
-    - GOARCH=amd64
-    - GO111MODULE=on
-  matrix:
-    - GOOS=linux
-    - GOOS=darwin
-    - GOOS=windows
+after_success:
+  - curl -sL https://git.io/goreleaser | bash 
+  - mkdir -p dist
+  - GOARCH="amd64" GOOS="linux" go build -a -o ./dist/shino
+  - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+  - export REPO=$DOCKER_USER/shino
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_TAG ; fi`
+  - echo $REPO:$TAG
+  - docker build -f Dockerfile -t $REPO:$TAG .
+  - docker push $REPO
+
+services:
+  - docker

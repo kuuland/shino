@@ -1,0 +1,16 @@
+# .goreleaser.yml
+# Build customization
+builds:
+  - binary: shino
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - 386
+      - arm
+# Archive customization
+archive:
+  format: tar.gz
