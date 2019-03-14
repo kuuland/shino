@@ -394,15 +394,15 @@ func setup() {
 	//创建监听退出chan
 	c := make(chan os.Signal)
 	//监听指定信号 ctrl+c kill
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
 		for s := range c {
 			switch s {
 			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
-				log.Printf("%s exit %v\n", outputFlag, s)
 				cancel()
+				errorPrint("%s exit %v\n", outputFlag, s)
 			default:
-				log.Printf("%s other %v\n", outputFlag, s)
+				errorPrint("%s other %v\n", outputFlag, s)
 			}
 		}
 	}()
@@ -434,7 +434,7 @@ func logArgs(args []string) {
 	for _, arg := range args {
 		output = fmt.Sprintf("%s %s", output, arg)
 	}
-	colorful(output)
+	successPrint(output)
 }
 
 func clone(url, local string) *exec.Cmd {
@@ -457,12 +457,16 @@ func mergedCmd(ctx context.Context, execStr string) *exec.Cmd {
 	return cmd
 }
 
-func colorful(format string, a ...interface{}) {
+func successPrint(format string, a ...interface{}) {
 	color.New(color.FgHiGreen, color.Bold).Printf(format, a...)
 }
 
+func errorPrint(format string, a ...interface{}) {
+	color.New(color.FgHiRed, color.Bold).Printf(format, a...)
+}
+
 func execMerge() {
-	colorful("%s merge dirs\n", outputFlag)
+	successPrint("%s merge dirs\n", outputFlag)
 	safeDirs := []string{"", ".", "/", "/usr", os.TempDir()}
 	if v, err := os.UserCacheDir(); err == nil {
 		safeDirs = append(safeDirs, v)
@@ -516,7 +520,7 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 
 	switch event.Op {
 	case fsnotify.Create:
-		colorful("%s create: %s => %s\n", outputFlag, changedPath, destPath)
+		successPrint("%s create: %s => %s\n", outputFlag, changedPath, destPath)
 		watcher.Add(event.Name)
 		if stat, err := os.Stat(changedPath); err == nil {
 			if stat.IsDir() {
@@ -527,11 +531,11 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 			}
 		}
 	case fsnotify.Rename, fsnotify.Remove, fsnotify.Remove | fsnotify.Rename:
-		colorful("%s remove: %s => %s\n", outputFlag, changedPath, destPath)
+		successPrint("%s remove: %s => %s\n", outputFlag, changedPath, destPath)
 		watcher.Remove(event.Name)
 		os.RemoveAll(destPath)
 	case fsnotify.Write:
-		colorful("%s write: %s => %s\n", outputFlag, changedPath, destPath)
+		successPrint("%s write: %s => %s\n", outputFlag, changedPath, destPath)
 		copyFile(changedPath, destPath)
 	}
 }
@@ -556,7 +560,7 @@ func registerWatcher() {
 				if !ok {
 					return
 				}
-				log.Printf("%s error:%s\n", outputFlag, err.Error())
+				errorPrint("%s error:%s\n", outputFlag, err.Error())
 			}
 		}
 	}()

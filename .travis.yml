@@ -7,10 +7,10 @@ env:
   - GO111MODULE=on
 
 after_success:
-  - curl -sL https://git.io/goreleaser | bash 
+  - test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash 
   - mkdir -p dist
   - GOARCH="amd64" GOOS="linux" go build -a -o ./dist/shino
-  - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
   - export REPO=$DOCKER_USER/shino
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_TAG ; fi`
   - echo $REPO:$TAG
