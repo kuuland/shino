@@ -1,6 +1,3 @@
 {
-  "base": "https://ci:wosoft2018@git.wosoft.me/fho/fho-admin.git",
-  "install": "npm install",
-  "start": "npm start",
-  "sync": "src"
+  "base": "https://github.com/kuuland/ui.git"
 }

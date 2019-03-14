@@ -321,7 +321,7 @@ func runLocal() {
 		cli.StringFlag{
 			Name:   "sync",
 			Usage:  "sync dir",
-			Value:  "sync",
+			Value:  "src",
 			EnvVar: "SYNC",
 		},
 	}
@@ -434,7 +434,7 @@ func logArgs(args []string) {
 	for _, arg := range args {
 		output = fmt.Sprintf("%s %s", output, arg)
 	}
-	successPrint(output)
+	successPrint(fmt.Sprintf("%s\n", output))
 }
 
 func clone(url, local string) *exec.Cmd {
