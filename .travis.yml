@@ -1,13 +1,12 @@
 language: go
 go:
   - 1.x
-install: true
 sudo: required
 env:
   - GO111MODULE=on
 
+install: true
 after_success:
-  - test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash 
   - mkdir -p dist
   - GOARCH="amd64" GOOS="linux" go build -a -o ./dist/shino
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
@@ -16,6 +15,14 @@ after_success:
   - echo $REPO:$TAG
   - docker build -f Dockerfile -t $REPO:$TAG .
   - docker push $REPO
+
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: curl -sL https://git.io/goreleaser | bash
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = linux
 
 services:
   - docker
