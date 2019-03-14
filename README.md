@@ -42,30 +42,18 @@ GLOBAL OPTIONS:
 }
 ```
 
-## Drone插件
+## Drone 插件
 
 ```yaml
 pipeline:
   build:
     image: yinfxs/shino
     base: https://github.com/fho/fho-admin.git
-    sync: src
-    install: npm install
-    build: npm run build
 ```
 
-插件配置项：
+支持的配置项：
 
 - **base** - 项目安装命令，默认值为“npm install”
 - **sync** - 本地代码目录，默认值为“src”
 - **install** - 项目安装命令，默认值为“npm install”
 - **build** - 项目构建命令，默认值为“npm run build”
-
-在使用默认值的情况下，一般这样配置即可：
-
-```yaml
-pipeline:
-  build:
-    image: yinfxs/shino
-    base: https://github.com/fho/fho-admin.git
-```
