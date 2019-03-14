@@ -434,7 +434,7 @@ func logArgs(args []string) {
 	for _, arg := range args {
 		output = fmt.Sprintf("%s %s", output, arg)
 	}
-	color.New(color.FgHiGreen, color.Bold).Println(output)
+	colorful(output)
 }
 
 func clone(url, local string) *exec.Cmd {
@@ -457,8 +457,12 @@ func mergedCmd(ctx context.Context, execStr string) *exec.Cmd {
 	return cmd
 }
 
+func colorful(format string, a ...interface{}) {
+	color.New(color.FgHiGreen, color.Bold).Printf(format, a...)
+}
+
 func execMerge() {
-	color.New(color.FgHiGreen, color.Bold).Printf("%s merge dirs\n", outputFlag)
+	colorful("%s merge dirs\n", outputFlag)
 	safeDirs := []string{"", ".", "/", "/usr", os.TempDir()}
 	if v, err := os.UserCacheDir(); err == nil {
 		safeDirs = append(safeDirs, v)
@@ -512,7 +516,7 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 
 	switch event.Op {
 	case fsnotify.Create:
-		color.Green("%s create: %s => %s\n", outputFlag, changedPath, destPath)
+		colorful("%s create: %s => %s\n", outputFlag, changedPath, destPath)
 		watcher.Add(event.Name)
 		if stat, err := os.Stat(changedPath); err == nil {
 			if stat.IsDir() {
@@ -523,11 +527,11 @@ func consumeEvent(watcher *fsnotify.Watcher, event fsnotify.Event) {
 			}
 		}
 	case fsnotify.Rename, fsnotify.Remove, fsnotify.Remove | fsnotify.Rename:
-		color.Green("%s remove: %s => %s\n", outputFlag, changedPath, destPath)
+		colorful("%s remove: %s => %s\n", outputFlag, changedPath, destPath)
 		watcher.Remove(event.Name)
 		os.RemoveAll(destPath)
 	case fsnotify.Write:
-		color.Green("%s write: %s => %s\n", outputFlag, changedPath, destPath)
+		colorful("%s write: %s => %s\n", outputFlag, changedPath, destPath)
 		copyFile(changedPath, destPath)
 	}
 }
