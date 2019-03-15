@@ -67,6 +67,7 @@ type (
 func (p Plugin) Exec() error {
 	// 1.备份一次当前目录到系统临时目录
 	backupDir := path.Join(os.TempDir(), "backup")
+	ensureDir(backupDir)
 	syncDir := sync
 	if !path.IsAbs(syncDir) {
 		syncDir = path.Join(cwd(), syncDir)
