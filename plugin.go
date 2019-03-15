@@ -65,7 +65,7 @@ type (
 
 // Exec 执行插件
 func (p Plugin) Exec() error {
-	// 1.备份一次当前目录到系统临时目录
+	// 1.备份一次当前目录到/tmp/backup
 	backupDir := path.Join(os.TempDir(), "backup")
 	ensureDir(backupDir)
 	syncDir := sync
@@ -78,18 +78,22 @@ func (p Plugin) Exec() error {
 	if err := copyDir(syncDir, backupDir); err != nil {
 		log.Fatal(err)
 	}
-	os.RemoveAll(syncDir)
-	// 2.克隆base到当前目录
-	cloneCmd := clone(p.Config.Base, backupDir)
+	// 2.克隆base到/tmp/base
+	baseDir := path.Join(os.TempDir(), "base")
+	cloneCmd := clone(p.Config.Base, baseDir)
 	execCmd(cloneCmd)
-	// 3.复制备份目录到当前目录
+	// 3.复制base目录到当前目录
+	if err := copyDir(baseDir, cwd()); err != nil {
+		log.Fatal(err)
+	}
+	// 4.复制备份目录到当前目录
 	destPath := destSrcCase(backupDir, cwd())
 	if err := copyDir(backupDir, destPath); err != nil {
 		log.Fatal(err)
 	}
-	// 4.执行install命令
+	// 5.执行install命令
 	p.install()
-	// 5.执行build命令
+	// 6.执行build命令
 	p.build()
 	return nil
 }
