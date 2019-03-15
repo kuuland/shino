@@ -2,14 +2,23 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
 func copyDir(srcPath string, destPath string) error {
+	cwd := cwd()
+	if !path.IsAbs(srcPath) {
+		srcPath = path.Join(cwd, srcPath)
+	}
+	if !path.IsAbs(destPath) {
+		destPath = path.Join(cwd, destPath)
+	}
 	//检测目录正确性
 	if srcInfo, err := os.Stat(srcPath); err != nil {
 		log.Fatal(err)
@@ -25,6 +34,7 @@ func copyDir(srcPath string, destPath string) error {
 			log.Fatal(errors.New("destInfo不是一个正确的目录！"))
 		}
 	}
+
 	err := filepath.Walk(srcPath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
 			return err
@@ -33,6 +43,10 @@ func copyDir(srcPath string, destPath string) error {
 			path := strings.Replace(path, "\\", "/", -1)
 			destNewPath := strings.Replace(path, srcPath, destPath, -1)
 			copyFile(path, destNewPath)
+		} else {
+			if err := isIgnoreDir(path); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -40,6 +54,16 @@ func copyDir(srcPath string, destPath string) error {
 		log.Fatal(err)
 	}
 	return err
+}
+
+func isIgnoreDir(path string) error {
+	ignoreDirs := []string{".shino", "node_modules", ".git", ".idea", ".vscode", ".history"}
+	for _, dir := range ignoreDirs {
+		if strings.HasSuffix(path, dir) {
+			return filepath.SkipDir
+		}
+	}
+	return nil
 }
 
 func copyFile(src, dest string) (w int64, err error) {

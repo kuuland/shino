@@ -27,7 +27,7 @@ var (
 	install = "npm install"
 	start   = "npm start"
 	build   = "npm run build"
-	sync    = "src"
+	sync    = cwd()
 
 	wsPath       = path.Join(cwd(), ".shino")
 	wsBasePath   = path.Join(wsPath, "base")
@@ -321,7 +321,7 @@ func runLocal() {
 		cli.StringFlag{
 			Name:   "sync",
 			Usage:  "sync dir",
-			Value:  "src",
+			Value:  cwd(),
 			EnvVar: "SYNC",
 		},
 	}
@@ -572,6 +572,11 @@ func registerWatcher() {
 	err = filepath.Walk(sync, func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(path, "node_modules") {
 			return nil
+		}
+		if info.IsDir() {
+			if err := isIgnoreDir(path); err != nil {
+				return err
+			}
 		}
 		err = watcher.Add(path)
 		if err != nil {
