@@ -3,9 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"os/exec"
 	"path"
-	"strings"
 )
 
 type (
@@ -91,29 +89,5 @@ func (p Plugin) Exec() error {
 	if err := copyDir(backupDir, destPath); err != nil {
 		log.Fatal(err)
 	}
-	// 5.执行install命令
-	p.install()
-	// 6.执行build命令
-	p.build()
 	return nil
-}
-
-func (p Plugin) install() {
-	if p.Config.Install != "" {
-		args := strings.Split(p.Config.Install, " ")
-		cmd := exec.Command(args[0])
-		if len(args) > 1 {
-			cmd.Args = args
-		}
-		execCmd(cmd)
-	}
-}
-
-func (p Plugin) build() {
-	args := strings.Split(p.Config.Build, " ")
-	cmd := exec.Command(args[0])
-	if len(args) > 1 {
-		cmd.Args = args
-	}
-	execCmd(cmd)
 }

@@ -227,18 +227,6 @@ func runDrone() {
 			EnvVar: "PLUGIN_BASE",
 		},
 		cli.StringFlag{
-			Name:   "config.install",
-			Usage:  "install command",
-			Value:  install,
-			EnvVar: "PLUGIN_INSTALL",
-		},
-		cli.StringFlag{
-			Name:   "config.build",
-			Usage:  "build command",
-			Value:  build,
-			EnvVar: "PLUGIN_BUILD",
-		},
-		cli.StringFlag{
 			Name:   "sync",
 			Usage:  "sync dir",
 			Value:  sync,
@@ -281,8 +269,6 @@ func runDrone() {
 			},
 			Config: Config{
 				Base:    c.String("config.base"),
-				Install: c.String("config.install"),
-				Build:   c.String("config.build"),
 				Sync:    c.String("config.sync"),
 			},
 		}

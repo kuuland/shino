@@ -57,5 +57,3 @@ pipeline:
 
 - **base** - 项目安装命令，默认值为“npm install”
 - **sync** - 本地代码目录，默认值为“src”
-- **install** - 项目安装命令，默认值为“npm install”
-- **build** - 项目构建命令，默认值为“npm run build”
