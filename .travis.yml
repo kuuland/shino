@@ -3,6 +3,7 @@ go:
   - 1.x
 sudo: required
 env:
+  - CGO_ENABLED=0
   - GO111MODULE=on
 
 install: true
