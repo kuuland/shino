@@ -3,12 +3,11 @@ go:
   - 1.x
 sudo: required
 env:
-  - CGO_ENABLED=0
   - GO111MODULE=on
 
 install: true
 after_success:
-  - GOARCH="amd64" GOOS="linux" go build -a -o shino
+  - GOARCH="amd64" GOOS="linux" CGO_ENABLED="0" go build -a -o shino
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
   - export REPO=$DOCKER_USER/shino
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_TAG ; fi`
