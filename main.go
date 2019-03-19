@@ -26,7 +26,6 @@ var (
 	base    = "https://github.com/kuuland/ui.git"
 	install = "npm install"
 	start   = "npm start"
-	build   = "npm run build"
 	sync    = cwd()
 
 	wsPath       = path.Join(cwd(), ".shino")
