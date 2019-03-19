@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	base    = ""
+	base    = "https://github.com/kuuland/ui.git"
 	install = "npm install"
 	start   = "npm start"
 	build   = "npm run build"
@@ -224,6 +224,7 @@ func runDrone() {
 		cli.StringFlag{
 			Name:   "config.base",
 			Usage:  "base project",
+			Value:  base,
 			EnvVar: "PLUGIN_BASE",
 		},
 		cli.StringFlag{
@@ -268,8 +269,8 @@ func runDrone() {
 				},
 			},
 			Config: Config{
-				Base:    c.String("config.base"),
-				Sync:    c.String("config.sync"),
+				Base: c.String("config.base"),
+				Sync: c.String("config.sync"),
 			},
 		}
 
@@ -292,6 +293,7 @@ func runLocal() {
 		cli.StringFlag{
 			Name:   "base",
 			Usage:  "base project",
+			Value:  base,
 			EnvVar: "BASE",
 		},
 		cli.StringFlag{
