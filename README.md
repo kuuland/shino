@@ -2,11 +2,9 @@
 
 [![Build Status](https://travis-ci.org/kuuland/shino.svg?branch=master)](https://travis-ci.org/kuuland/shino)
 
-## 本地开发
-
 ```sh
 NAME:
-   shino - a command line tool for Kuu
+   shino - CLI for Kuu
 
 USAGE:
    shino [global options] command [command options] [arguments...]
@@ -15,15 +13,29 @@ VERSION:
    0.0.0
 
 COMMANDS:
+     up       startup project
+     fano     CLI for FanoJS
      help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --base value     base project [$BASE]
+   --help, -h     show help
+   --version, -v  print the version
+```
+
+## 本地开发
+
+```sh
+NAME:
+   shino up - startup project
+
+USAGE:
+   shino up [command options] [arguments...]
+
+OPTIONS:
+   --base value     base project (default: "https://github.com/kuuland/ui.git") [$BASE]
    --install value  install command (default: "npm install") [$INSTALL]
    --start value    start command (default: "npm start") [$START]
-   --sync value     sync dir (default: "sync") [$SYNC]
-   --help, -h       show help
-   --version, -v    print the version
+   --sync value     sync dir (default: "/Users/yinfxs/gopath/src/github.com/kuuland/shino") [$SYNC]
 ```
 
 命令行配置项：
@@ -37,23 +49,41 @@ GLOBAL OPTIONS:
 
 ```json
 {
-  "base": "https://github.com/fho/fho-admin.git",
+  "base": "https://github.com/kuuland/ui.git",
   "install": "npm install",
-  "start": "npm start",
-  "sync": "src"
+  "start": "npm start"
 }
 ```
 
-## Drone 插件
+## Drone CI插件
 
 ```yaml
-pipeline:
-  build:
-    image: yinfxs/shino
-    base: https://github.com/fho/fho-admin.git
+steps:
+- name: prebuild  
+  image: yinfxs/shino
+  pull: true
 ```
 
-支持的配置项：
+## Fano代码生成
 
-- **base** - 项目安装命令，默认值为“npm install”
-- **sync** - 本地代码目录，默认值为“src”
+shino提供了基于**元数据**的代码生成功能
+
+### 表格页面
+
+```sh
+NAME:
+   shino fano table - generate table pages based on metadata
+
+USAGE:
+   shino fano table [command options] [arguments...]
+
+OPTIONS:
+   --meta value  metadata url
+   --out value   output dir
+```
+
+```sh
+shino fano table \
+    --meta http://localhost:8080/api/meta?json=1 \
+    --out out
+```
