@@ -38,13 +38,13 @@ func RunLocal() {
 				cli.StringFlag{
 					Name:   "install",
 					Usage:  "install command",
-					Value:  "yarn --registry https://registry.npm.taobao.org/",
+					Value:  "npm install --registry https://registry.npm.taobao.org/",
 					EnvVar: "INSTALL",
 				},
 				cli.StringFlag{
 					Name:   "start",
 					Usage:  "start command",
-					Value:  "yarn start",
+					Value:  "npm start",
 					EnvVar: "START",
 				},
 				cli.StringFlag{
