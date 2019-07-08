@@ -23,6 +23,7 @@ func RunLocal() {
 	app := cli.NewApp()
 	app.Name = "shino"
 	app.Usage = "CLI for Kuu"
+	app.Version = "0.1.4"
 	app.Commands = cli.Commands{
 		{
 			Name:  "up",
