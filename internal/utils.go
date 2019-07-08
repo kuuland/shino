@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -198,4 +199,9 @@ func pathExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func isEmptyDir(dirname string) bool {
+	dir, _ := ioutil.ReadDir(dirname)
+	return len(dir) == 0
 }

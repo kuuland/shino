@@ -37,13 +37,13 @@ func RunLocal() {
 				cli.StringFlag{
 					Name:   "install",
 					Usage:  "install command",
-					Value:  "npm install",
+					Value:  "yarn --registry https://registry.npm.taobao.org/",
 					EnvVar: "INSTALL",
 				},
 				cli.StringFlag{
 					Name:   "start",
 					Usage:  "start command",
-					Value:  "npm start",
+					Value:  "yarn start",
 					EnvVar: "START",
 				},
 				cli.StringFlag{
@@ -153,27 +153,28 @@ func localSetup() {
 		}
 	}()
 	// 检查是否存在.shino/base目录
-	if _, err := os.Stat(workBaseDir); os.IsNotExist(err) {
+	if isEmptyDir(workBaseDir) {
 		ensureDir(workBaseDir)
 		// 执行clone命令
-		cloneCmd := clone(workDir, workBaseDir)
+		cloneCmd := clone(baseURL, workBaseDir)
 		execCmd(cloneCmd)
 	}
 	// 执行合并：.shino/base + sync = .shino/merged
-	if _, err := os.Stat(workMergedDir); os.IsNotExist(err) {
+	if isEmptyDir(workMergedDir) {
 		execMerge()
-		// 执行install命令
-		if installCmd != "" {
-			installCmd := mergedCmd(ctx, installCmd)
-			execCmd(installCmd)
-		}
+	}
+	// 执行install命令
+	if installCmd != "" || isEmptyDir(path.Join(workMergedDir, "node_modules")) {
+		installCmd := mergedCmd(ctx, installCmd)
+		execCmd(installCmd)
 	}
 	// 执行start命令
-	startCmd := mergedCmd(ctx, startCmd)
-	go execCmd(startCmd)
+	cmd := mergedCmd(ctx, startCmd)
+	go execCmd(cmd)
 	// 启动监听器
 	registerWatcher()
 }
+
 func mergedCmd(ctx context.Context, execStr string) *exec.Cmd {
 	args := strings.Split(execStr, " ")
 	cmd := exec.CommandContext(ctx, args[0])
