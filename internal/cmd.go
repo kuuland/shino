@@ -165,7 +165,7 @@ func localSetup() {
 		execMerge()
 	}
 	// 执行install命令
-	if installCmd != "" || isEmptyDir(path.Join(workMergedDir, "node_modules")) {
+	if installCmd != "" && isEmptyDir(path.Join(workMergedDir, "node_modules")) {
 		installCmd := mergedCmd(ctx, installCmd)
 		execCmd(installCmd)
 	}
