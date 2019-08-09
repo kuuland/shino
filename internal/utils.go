@@ -21,7 +21,7 @@ var (
 	startCmd   = "npm start"
 	syncDir    = cwd()
 
-	workDir       = path.Join(cwd(), ".shino")
+	workDir       = path.Join(".shino")
 	workBaseDir   = path.Join(workDir, "base")
 	workMergedDir = path.Join(workDir, "merged")
 
@@ -29,13 +29,6 @@ var (
 )
 
 func copyDir(srcPath string, destPath string) error {
-	cwd := cwd()
-	if !path.IsAbs(srcPath) {
-		srcPath = path.Join(cwd, srcPath)
-	}
-	if !path.IsAbs(destPath) {
-		destPath = path.Join(cwd, destPath)
-	}
 	//检测目录正确性
 	if srcInfo, err := os.Stat(srcPath); err != nil {
 		log.Fatal(err)

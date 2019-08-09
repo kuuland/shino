@@ -109,7 +109,7 @@ func RunLocal() {
 
 func parseConfigFile() {
 	var cfg map[string]string
-	cfgFile := path.Join(cwd(), "kuu.json")
+	cfgFile := "kuu.json"
 	if stat, err := os.Stat(cfgFile); err == nil && !stat.IsDir() {
 		if data, err := ioutil.ReadFile(cfgFile); err == nil {
 			if err := json.Unmarshal(data, &cfg); err != nil {
