@@ -128,7 +128,7 @@ func cwd() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return strings.Replace(dir, "\\", "/", -1)
+	return dir
 }
 
 func IsIgnoreDir(path string) error {
